@@ -2,11 +2,43 @@
 
 Firmware source for the Raspberry Pi Debug Probe SWD/UART accessory. Can also be run on a Raspberry Pi Pico or Pico 2.
 
+This fork additionally contains a configuration for **Seeed Studio XIAO RP2040** intended for CMSIS-DAP SWD programming, including a dedicated target reset line.
+
 [Raspberry Pi Debug Probe product page](https://www.raspberrypi.com/products/debug-probe/)
 
 [Raspberry Pi Pico product page](https://www.raspberrypi.com/products/raspberry-pi-pico/)
 
 [Raspberry Pi Pico 2 product page](https://www.raspberrypi.com/products/raspberry-pi-pico-2/)
+
+## Seeed Studio XIAO RP2040
+
+The `xiao-rp2040-reset` configuration uses the pin names printed/documented by Seeed Studio:
+
+| XIAO pin | RP2040 GPIO | Debug Probe function | Connect to target |
+| --- | ---: | --- | --- |
+| **D7** | GPIO1 | Target reset | **nRESET** |
+| **D8** | GPIO2 | SWD clock | **SWCLK** |
+| **D10** | GPIO3 | SWD data | **SWDIO** |
+| **GND** | - | Ground | **GND** |
+| **3V3** | - | 3.3 V supply | **VCC / 3.3 V** |
+
+![XIAO RP2040 Debug Probe pinout](docs/xiao-rp2040-debugprobe-pinout.svg)
+
+The diagram follows the official Seeed Studio XIAO RP2040 front-pinout naming. The official reference image is available from [Seeed Studio](https://files.seeedstudio.com/wiki/XIAO-RP2040/img/XIAO_RP2040_front_pinout.png), and the board documentation is on the [Seeed Studio XIAO RP2040 wiki](https://wiki.seeedstudio.com/XIAO-RP2040/).
+
+> **Important:** the target interface is 3.3 V. Do **not** connect the target to the XIAO `5V` pin.
+
+For the Solum M3 recovery use case only five connections are required: `D7/nRESET`, `D8/SWCLK`, `D10/SWDIO`, `GND`, and `3V3`. The CDC UART bridge remains assigned internally to GPIO4/GPIO5 because the upstream Debug Probe source currently compiles the UART component, but those UART pins are not required for SWD programming.
+
+### Building the XIAO firmware
+
+The GitHub Actions workflow in this fork builds the XIAO RP2040 firmware automatically. The expected UF2 output is:
+
+```text
+debugprobe_on_xiao_rp2040.uf2
+```
+
+To install it, put the XIAO RP2040 into its UF2 bootloader mode so that Windows exposes the `RPI-RP2` drive, then copy the UF2 file to that drive. After reboot the board enumerates as a CMSIS-DAP Debug Probe.
 
 ## Documentation
 
@@ -82,4 +114,3 @@ To enable AutoBaud, configure the USB CDC port to the following custom baud rate
 > **Note:** Some Linux serial tools cannot set custom baud values. PuTTY on Windows and any terminal that supports arbitrary baud rates works.
 
 Changing the baud rate to any other value disables AutoBaud.
-
