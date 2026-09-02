@@ -22,7 +22,7 @@ The `xiao-rp2040-reset` configuration uses the pin names printed/documented by S
 | **GND** | - | Ground | **GND** |
 | **3V3** | - | 3.3 V supply | **VCC / 3.3 V** |
 
-![XIAO RP2040 Debug Probe pinout](docs/xiao-rp2040-debugprobe-pinout.svg)
+![XIAO RP2040 Debug Probe pinout](docs/xiao-rp2040-debugprobe-wiring.png)
 
 The diagram follows the official Seeed Studio XIAO RP2040 front-pinout naming. The official reference image is available from [Seeed Studio](https://files.seeedstudio.com/wiki/XIAO-RP2040/img/XIAO_RP2040_front_pinout.png), and the board documentation is on the [Seeed Studio XIAO RP2040 wiki](https://wiki.seeedstudio.com/XIAO-RP2040/).
 
