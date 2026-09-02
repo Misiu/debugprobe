@@ -1,85 +1,74 @@
-# Debugprobe
+# Debugprobe for Seeed Studio XIAO RP2040
 
-Firmware source for the Raspberry Pi Debug Probe SWD/UART accessory. Can also be run on a Raspberry Pi Pico or Pico 2.
+This fork targets **Seeed Studio XIAO RP2040** as a CMSIS-DAP/SWD debug probe with a dedicated target reset line.
 
-[Raspberry Pi Debug Probe product page](https://www.raspberrypi.com/products/debug-probe/)
+It is based on the Raspberry Pi Debug Probe firmware, but this repository is intentionally focused only on the XIAO RP2040 configuration.
 
-[Raspberry Pi Pico product page](https://www.raspberrypi.com/products/raspberry-pi-pico/)
+## Wiring
 
-[Raspberry Pi Pico 2 product page](https://www.raspberrypi.com/products/raspberry-pi-pico-2/)
+| XIAO pin | RP2040 GPIO | Debug Probe function | Connect to target |
+| --- | ---: | --- | --- |
+| **D7** | GPIO1 | Target reset | **nRESET** |
+| **D8** | GPIO2 | SWD clock | **SWCLK** |
+| **D10** | GPIO3 | SWD data | **SWDIO** |
+| **GND** | - | Ground | **GND** |
+| **3V3** | - | 3.3 V supply | **VCC / 3.3 V** |
 
-## Documentation
+![XIAO RP2040 Debug Probe wiring](docs/xiao-rp2040-debugprobe-wiring.png)
 
-Debug Probe documentation can be found at the [Raspberry Pi documentation](https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html#about-the-debug-probe) and in the [Getting Started with Pico PDF](https://pip.raspberrypi.com/documents/RP-008276-DS).
+The diagram follows the official Seeed Studio XIAO RP2040 front-pinout naming. See the [official Seeed Studio pinout](https://files.seeedstudio.com/wiki/XIAO-RP2040/img/XIAO_RP2040_front_pinout.png) and the [XIAO RP2040 documentation](https://wiki.seeedstudio.com/XIAO-RP2040/).
 
-## Hacking
+> **Important:** the target interface is 3.3 V. Do **not** connect the target to the XIAO `5V` pin.
 
-For the purpose of making changes or studying of the code, you may want to compile the code yourself.
+For the Solum M3 recovery use case only five connections are required: `D7/nRESET`, `D8/SWCLK`, `D10/SWDIO`, `GND`, and `3V3`.
 
-First, clone the repository:
-```bash
-git clone https://github.com/raspberrypi/debugprobe
-cd debugprobe
+The CDC UART bridge remains assigned internally to GPIO4/GPIO5 because the upstream Debug Probe source currently compiles the UART component, but UART is not required for SWD programming.
+
+## Build
+
+GitHub Actions builds the XIAO RP2040 firmware automatically using Pico SDK 2.3.0.
+
+Expected artifact:
+
+```text
+debugprobe_on_xiao_rp2040.uf2
 ```
 
-Initialize and update the submodules:
-```bash
- git submodule update --init --recursive
+The workflow is located at:
+
+```text
+.github/workflows/build-xiao-rp2040.yml
 ```
 
-Then create and switch to the build directory:
-```bash
- mkdir build
- cd build
+## Install on XIAO RP2040
+
+1. Put the XIAO RP2040 into UF2 bootloader mode so that the computer exposes the `RPI-RP2` drive.
+2. Copy `debugprobe_on_xiao_rp2040.uf2` to that drive.
+3. After reboot, the board should enumerate as a CMSIS-DAP Debug Probe.
+
+## Pin configuration
+
+The XIAO-specific configuration is in:
+
+```text
+include/board_pico_config.h
 ```
 
-If your environment doesn't contain `PICO_SDK_PATH`, then either add it to your environment variables with `export PICO_SDK_PATH=/path/to/sdk` or add `-DPICO_SDK_PATH=/path/to/sdk` to the arguments to CMake below.
+Relevant definitions:
 
-Run cmake and build the code:
-```bash
- cmake ..
- make
+```c
+#define PROBE_PIN_RESET 1
+#define PROBE_PIN_SWCLK 2
+#define PROBE_PIN_SWDIO 3
+
+#define PROBE_UART_TX 4
+#define PROBE_UART_RX 5
+#define PROBE_UART_INTERFACE uart1
+#define PROBE_UART_BAUDRATE 115200
 ```
 
-Done! You should now have a `debugprobe.uf2` that you can upload to your Debug Probe via the UF2 bootloader.
+## Upstream
 
-## Building for the Pico 1
+Original Raspberry Pi Debug Probe project:
 
-If you want to create the version that runs on the Pico, then you need to invoke `cmake` in the sequence above with the `DEBUG_ON_PICO=ON` option:
-```bash
-cmake -DDEBUG_ON_PICO=ON ..
-```
-
-This will build with the configuration for the Pico and call the output program `debugprobe_on_pico.uf2`, as opposed to `debugprobe.uf2` for the accessory hardware.
-
-Note that if you first ran through the whole sequence to compile for the Debug Probe, then you don't need to start back at the top. You can just go back to the `cmake` step and start from there.
-
-## Building for the Pico 2
-
-If using an existing debugprobe clone:
-- You must completely regenerate your build directory, or use a different one.
-- You must also sync and update submodules.
-- `PICO_SDK_PATH` must point to a version 2.0.0 or greater install.
-
-```bash
-git submodule sync
-git submodule update --init --recursive
-mkdir build-pico2
-cd build-pico2
-cmake -DDEBUG_ON_PICO=1 -DPICO_BOARD=pico2 ../
-```
-
-This will build with the configuration for the Pico 2 and call the output program `debugprobe_on_pico2.uf2`.
-
-## AutoBaud Mode
-
-Mode which automatically detects and sets the UART baud rate as data arrives.
-
-To enable AutoBaud, configure the USB CDC port to the following custom baud rate:
-```
-9728 (0x2600)
-```
-> **Note:** Some Linux serial tools cannot set custom baud values. PuTTY on Windows and any terminal that supports arbitrary baud rates works.
-
-Changing the baud rate to any other value disables AutoBaud.
-
+https://github.com/raspberrypi/debugprobe

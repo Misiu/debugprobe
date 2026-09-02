@@ -3,24 +3,17 @@
  *
  * Copyright (c) 2023 Raspberry Pi (Trading) Ltd.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * XIAO RP2040 configuration for CMSIS-DAP SWD use.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * Physical XIAO mapping:
+ *   D7  / GPIO1 -> target nRESET
+ *   D8  / GPIO2 -> target SWCLK
+ *   D10 / GPIO3 -> target SWDIO
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
+ * The upstream debugprobe build always compiles cdc_uart.c, so UART symbols
+ * must remain defined even if the UART bridge is not needed for Solum recovery.
+ * UART is therefore assigned to GPIO4/GPIO5 (UART1), leaving GPIO1 exclusively
+ * available for target nRESET.
  */
 
 #ifndef BOARD_PICO_H_
@@ -29,22 +22,23 @@
 #define PROBE_IO_RAW
 #define PROBE_CDC_UART
 
-// PIO config
+// PIO / SWD configuration
 #define PROBE_SM 0
 #define PROBE_PIN_OFFSET 2
-#define PROBE_PIN_SWCLK (PROBE_PIN_OFFSET + 0) // 2
-#define PROBE_PIN_SWDIO (PROBE_PIN_OFFSET + 1) // 3
-// Target reset config
-#define PROBE_PIN_RESET 1
+#define PROBE_PIN_SWCLK (PROBE_PIN_OFFSET + 0) // GPIO2 / XIAO D8
+#define PROBE_PIN_SWDIO (PROBE_PIN_OFFSET + 1) // GPIO3 / XIAO D10
 
-// UART config
+// Target reset, active-low
+#define PROBE_PIN_RESET 1                      // GPIO1 / XIAO D7
+
+// CDC UART bridge. Not required for Solum recovery, but debugprobe currently
+// compiles cdc_uart.c unconditionally and therefore requires these definitions.
+// GPIO4/GPIO5 are valid UART1 pins on RP2040 and do not conflict with SWD/reset.
 #define PROBE_UART_TX 4
 #define PROBE_UART_RX 5
 #define PROBE_UART_INTERFACE uart1
 #define PROBE_UART_BAUDRATE 115200
 
-#define PROBE_USB_CONNECTED_LED 25
-
-#define PROBE_PRODUCT_STRING "Debugprobe on Pico (CMSIS-DAP)"
+#define PROBE_PRODUCT_STRING "Debugprobe on XIAO RP2040 (CMSIS-DAP)"
 
 #endif

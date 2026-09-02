@@ -66,14 +66,14 @@ target_compile_definitions (debugprobe PRIVATE
     PICO_ENABLE_USB_RESET_VIA_VENDOR_INTERFACE=1
 )
 
-option (DEBUG_ON_PICO "Compile firmware for the Pico instead of Debug Probe" OFF)
+option (DEBUG_ON_PICO "Compile firmware for a Pico-compatible RP2040 board instead of Debug Probe" OFF)
 if (DEBUG_ON_PICO)
     target_compile_definitions (debugprobe PRIVATE
 	DEBUG_ON_PICO=1
     )
     if (PICO_BOARD STREQUAL "pico")
         set_target_properties(debugprobe PROPERTIES
-            OUTPUT_NAME "debugprobe_on_pico"
+            OUTPUT_NAME "debugprobe_on_xiao_rp2040"
         )
     elseif (PICO_BOARD STREQUAL "pico2")
         set_target_properties(debugprobe PROPERTIES
